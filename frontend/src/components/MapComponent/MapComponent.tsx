@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, useMap, FeatureGroup } from 'react-leaflet';
 // import { EditControl } from 'react-leaflet-draw';
 import { LatLngTuple } from 'leaflet';
@@ -80,20 +80,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
     return { polygons, initialCenter, polygonIds };
   }, [selectedSolutions, mapData]);
 
-  // const handlePolygonClick = (polygonId: string) => {
-  //   console.log('poligonID clicked', polygonId);
-  //   setSelectedPolygonIds((prev) => {
-  //     const isSelected = prev.includes(polygonId);
-  //     const updatedSelection = isSelected
-  //       ? prev.filter((id) => id !== polygonId) // Deselect
-  //       : [...prev, polygonId]; // Select
-  //     // TODO: Ovde baciti event o promeni idjeva
-  //     onSelectionChange(updatedSelection); // Notify parent component of selection change
-  //     dispatch(togglePolygonSelection(polygonId)); 
-  //     return updatedSelection;
-  //   });
-  // };
-
   const handlePolygonClick = (polygonId: string) => {
     setSelectedPolygonIds((prevSelected) => {
       if (prevSelected.includes(polygonId)) {
@@ -104,11 +90,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
         return [...prevSelected, polygonId];
       }
     });
-    console.log("Clicked Polygon ID:", polygonId);
     dispatch(togglePolygonSelection(polygonId)); // Dispatch action to update global state
   };
-
-
 
   return (
     <MapContainer
@@ -128,8 +111,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
         {polygons.map((polygon, index) => {
            const uniqueKey = polygonIds[index] || `polygon-${index}`;
 
-
-          console.log('poligon;', polygon);
            return(
           <Polygon
             key={uniqueKey} 
@@ -138,7 +119,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
               click: () => handlePolygonClick(polygonIds[index]),
             }}
             pathOptions={{
-              // color: selectedPolygonIds.includes(polygonIds[index]) ? '#1976d2' : 'black', // Highlight selected
               color: selectedPolygons.includes(polygonIds[index]) ? '#1976d2' : 'black',
             }}
           >

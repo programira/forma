@@ -8,28 +8,20 @@ import {
   Toolbar,
   Snackbar
 } from '@mui/material';
-import UnionIcon from '@mui/icons-material/MergeType'; // Union icon
-import IntersectIcon from '@mui/icons-material/CallSplit'; // Intersection icon
-import MapComponent from '../components/MapComponent/MapComponent'; // Placeholder for your map component
+import UnionIcon from '@mui/icons-material/MergeType';
+import IntersectIcon from '@mui/icons-material/CallSplit';
+import MapComponent from '../components/MapComponent/MapComponent';
 import LeftSidebar from '../components/LeftSidebar/LeftSidebar';
 import RightSidebar from '../components/RightSidebar/RigthSidebar';
-import useFetchSolutions from '../hooks/useFetchSolutions'; // Import custom hook
+import useFetchSolutions from '../hooks/useFetchSolutions';
 import { RootState } from '../store/store';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateSolutionState, performIntersect, performUnion } from '../store/solutionsSlice';
-import { FeatureCollection } from '../types/geojson';
-import { performUnionUsingFeatureCollection } from '../utils/geometryUtils';
-import { Polygon } from 'leaflet';
-
-
+import { performIntersect, performUnion } from '../store/solutionsSlice';
 
 const AppLayout: React.FC = () => {
   const dispatch = useDispatch();
-  const { loading, error } = useFetchSolutions(); // Use the custom hook for fetching solutions
-  // const [selectedSolution, setSelectedSolution] = useState<string | null>(null);
-  
-  // const unionResult = useSelector((state: RootState) => state.solutions.unionResult);
-  // const selectedSolutions = useSelector((state: RootState) => state.solutions.selectedSolutions);
+  const { loading, error } = useFetchSolutions();
+
   const solutions = useSelector((state: RootState) => state.solutions.solutions);
   const selectedSolutions = useSelector((state: RootState) => state.solutions.selectedSolutions);
 
@@ -38,25 +30,6 @@ const AppLayout: React.FC = () => {
     open: false,
     message: '',
   });
-
-
-   // Local state for map data
-   const [mapData, setMapData] = useState<FeatureCollection | null>(null)
-
-
-// Update mapData when unionResult changes
-// useEffect(() => {
-//   // if (unionResult) {
-//   //   // Wrap unionResult in a FeatureCollection
-//   //   const featureCollection: FeatureCollection = {
-//   //     type: 'FeatureCollection',
-//   //     features: [unionResult],
-//   //   };
-
-//   //   setMapData(featureCollection); // Update mapData
-//   // }
-// }, [solutions]);
-
 
    const handleUnion = () => {
     if (selectedPolygonIds.length < 2) {
@@ -67,44 +40,12 @@ const AppLayout: React.FC = () => {
       return;
     }
 
-    // const allPolygons = selectedSolutions.flatMap((solution) => solution.features);
-    // const selectedPolygons = allPolygons.filter((feature) =>
-    //   selectedPolygonIds.includes(feature.id as string)
-    // );
-    // console.log('Selected Polygons:', selectedPolygons);
-    // const { unionResult, totalArea } = performUnionUsingFeatureCollection(selectedPolygons);
-
-    // if (!unionResult) {
-    //   setSnackbar({
-    //     open: true,
-    //     message: 'Union operation failed.',
-    //   });
-    //   return;
-    // }
-
-    // setMapData({
-    //   type: 'FeatureCollection',
-    //   features: [unionResult],
-    //   id: 'union-result',
-    // });
-    // dispatch(updateSolutionState([{ type: 'FeatureCollection', features: [unionResult] }]));
-
-    // setSnackbar({
-    //   open: true,
-    //   message: 'Union operation completed successfully!',
-    // });
-
     dispatch(performUnion());
     setSnackbar({
       open: true,
       message: 'Union operation completed successfully!',
     });
   };
-  
-
-
-
-  ///
 
   const handleIntersect = () => {
     if (selectedPolygonIds.length < 2) {
@@ -121,11 +62,9 @@ const AppLayout: React.FC = () => {
     });
   };
 
-  // const totalArea = calculateTotalArea(selectedSolutions);
-
-  const handleUpdate = (updatedFeatures: FeatureCollection[]) => {
-    dispatch(updateSolutionState(updatedFeatures)); // Update state with the new features
-  };
+  // const handleUpdate = (updatedFeatures: FeatureCollection[]) => {
+  //   dispatch(updateSolutionState(updatedFeatures)); // Update state with the new features
+  // };
 
   if (loading) {
     return <div>Loading solutions...</div>; // Handle loading state
@@ -169,7 +108,7 @@ const AppLayout: React.FC = () => {
       {/* Left Sidebar */}
       <LeftSidebar />
        {/* Buttons */}
-       <Box
+      <Box
         sx={{
           position: 'fixed',
           top: 80,
@@ -179,14 +118,13 @@ const AppLayout: React.FC = () => {
           gap: 1,
           zIndex: 1000,
         }}
-      > 
-      <Button variant="contained" startIcon={<UnionIcon />} onClick={handleUnion}>
-  Union
-</Button>
-<Button variant="contained" startIcon={<IntersectIcon />} onClick={handleIntersect}>
-  Intersect
-</Button>
-
+      >
+        <Button variant="contained" startIcon={<UnionIcon />} onClick={handleUnion}>
+          Union
+        </Button>
+        <Button variant="contained" startIcon={<IntersectIcon />} onClick={handleIntersect}>
+          Intersect
+        </Button>
       </Box>
 
       {/* Center Map */}
