@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   CssBaseline,
-  IconButton,
   Toolbar,
   Snackbar
 } from '@mui/material';
@@ -26,10 +25,22 @@ const AppLayout: React.FC = () => {
   const selectedSolutions = useSelector((state: RootState) => state.solutions.selectedSolutions);
 
   const selectedPolygonIds = useSelector((state: RootState) => state.solutions.selectedPolygons);
+
+    // Fetch the toast message from Redux state
+    const toastMessage = useSelector((state: RootState) => state.solutions.toastMessage);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
   });
+
+  useEffect(() => {
+    if (toastMessage) {
+      setSnackbar({
+        open: true,
+        message: toastMessage || 'Something went wrong!',
+      });
+    }
+  }, [toastMessage]);
 
    const handleUnion = () => {
     if (selectedPolygonIds.length < 2) {
@@ -56,15 +67,8 @@ const AppLayout: React.FC = () => {
       return;
     }
     dispatch(performIntersect());
-    setSnackbar({
-      open: true,
-      message: 'Intersect operation completed successfully!',
-    });
   };
 
-  // const handleUpdate = (updatedFeatures: FeatureCollection[]) => {
-  //   dispatch(updateSolutionState(updatedFeatures)); // Update state with the new features
-  // };
 
   if (loading) {
     return <div>Loading solutions...</div>; // Handle loading state
@@ -142,14 +146,9 @@ const AppLayout: React.FC = () => {
       >
         <Toolbar />
         <MapComponent
-  // selectedSolutions={solutions}
-  // // onUpdate={(updatedFeatures) => dispatch(updateSolutionState(updatedFeatures))}
-  // onUpdate={handleUpdate} // Pass the callback
-  // mapData={null}
-  // onSelectionChange={(selectedIds) => console.log('Selected Polygons:', selectedIds)}
-  solutions={solutions}
-  selectedSolutions={selectedSolutions} // Pass only selected solutions
-/>
+          solutions={solutions}
+          selectedSolutions={selectedSolutions} // Pass only selected solutions
+        />
       </Box>
 
       {/* Right Sidebar */}

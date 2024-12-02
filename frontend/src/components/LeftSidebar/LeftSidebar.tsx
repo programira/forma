@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Box, List, ListItem, ListItemText, ListItemIcon, Checkbox, Typography } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import  { toggleSolution }  from '../../store/solutionsSlice';
-import { FeatureCollection } from '../../types/geojson';
 
 const LeftSidebar: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -45,7 +44,6 @@ const LeftSidebar: React.FC = () => {
           <ListItem
             key={index}
             component="li"
-            // onClick={() => handleToggle(solution)}
 						onClick={() => handleToggle(solution.id)}
             sx={{
               backgroundColor: selectedSolutions.includes(solution) ? 'rgba(255, 255, 255, 0.2)' : 'transparent',

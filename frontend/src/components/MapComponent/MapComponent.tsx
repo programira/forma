@@ -12,10 +12,9 @@ import { AppDispatch, RootState } from '../../store/store';
 
 interface MapComponentProps {
   selectedSolutions: FeatureCollection[];
-  onUpdate: (updatedFeatures: FeatureCollection[]) => void; // Callback to update features
+  // onUpdate: (updatedFeatures: FeatureCollection[]) => void; // Callback to update features
   mapData: FeatureCollection | null; // Union result or custom data to display
-  
-  onSelectionChange: (selectedIds: string[]) => void; // Callback for selected polygons
+  // onSelectionChange: (selectedIds: string[]) => void; // Callback for selected polygons
 }
 
 const AddZoomControls: React.FC = () => {
@@ -31,7 +30,7 @@ const AddZoomControls: React.FC = () => {
 
 const MapComponent: React.FC<MapComponentProps> = ({
   selectedSolutions,
-  onUpdate,
+  // onUpdate,
   mapData,
   // onSelectionChange,
 }) => {
@@ -46,7 +45,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     const polygonIds: string[] = [];
     let initialCenter: LatLngTuple = defaultCenter;
 
-    const dataToRender = mapData || selectedSolutions; // Prioritize mapData if available
+    const dataToRender = mapData || selectedSolutions;
 
     if (Array.isArray(dataToRender) && dataToRender.length > 0) {
       const firstPolygon = dataToRender[0].features[0].geometry.coordinates[0];

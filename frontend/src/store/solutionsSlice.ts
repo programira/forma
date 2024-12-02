@@ -4,28 +4,23 @@ import { area, union as turfUnion, intersect as turfIntersect } from '@turf/turf
 import { Feature, GeoJsonProperties, MultiPolygon, Polygon, WritableDraft } from 'geojson';
 import { performUnionUsingFeatureCollection, performIntersectUsingFeatureCollection } from '../utils/geometryUtils';
 
-// Define the initial state
+
 interface SolutionsState {
   solutions: FeatureCollection[]; // Leaving this as the list of solutions, even though we are only using one solution
-  // selectedSolutionIndex: number | null; // Index of the selected solution
-  // selectedSolution: FeatureCollection | null; // The selected solution itself
   selectedSolutions: FeatureCollection[];  // Array to store multiple selected solutions
   selectedPolygons: string[]; // List of selected polygon IDs
   totalArea: number; // Total area of selected polygons
-  // unionResult: Feature<Polygon | MultiPolygon> | null; // Result of the union operation
   intersectResult: Feature<Polygon | MultiPolygon> | null; // Result of the union operation
-
+  toastMessage: string;
 }
 
 const initialState: SolutionsState = {
   solutions: [],
-  // selectedSolutionIndex: null,
-  // selectedSolution: null,
   selectedSolutions: [],
   selectedPolygons:[],
   totalArea: 0,
-  // unionResult: null,
   intersectResult: null,
+  toastMessage: '',
 };
 
 // Create the slice
@@ -33,9 +28,6 @@ const solutionsSlice = createSlice({
   name: "solutions",
   initialState,
   reducers: {
-    // setSolutions(state, action: PayloadAction<FeatureCollection[]>) {
-    //   state.solutions = action.payload;
-    // },
     setSolutions(state, action: PayloadAction<FeatureCollection[]>) {
       state.solutions = action.payload.map((solution, index) => ({
         ...solution,
@@ -53,8 +45,6 @@ const solutionsSlice = createSlice({
       );
 
       if (isSelected) {
-        // Remove the solution from selectedSolutions
-        // state.selectedSolutions = state.selectedSolutions.filter((solution) => solution.id !== solutionId);
         // Deselect the solution
         state.selectedSolutions = [];
       } else {
@@ -63,7 +53,6 @@ const solutionsSlice = createSlice({
           (solution) => solution.id === solutionId
         );
         if (solution) {
-          // state.selectedSolutions.push(solution); // In case I want to select multiple solutions
           state.selectedSolutions = [solution];
         }
       }
@@ -118,7 +107,7 @@ const solutionsSlice = createSlice({
         return;
       }
 
-      const { unionResult, totalArea } = performUnionUsingFeatureCollection(
+      const { unionResult } = performUnionUsingFeatureCollection(
         selectedPolygonFeatures
       );
 
@@ -167,7 +156,7 @@ const solutionsSlice = createSlice({
         state.selectedSolutions = [updatedSolution];
       }
 
-      console.log("state.solutions", state.solutions);
+      // console.log("state.solutions", state.solutions);
 
       state.totalArea = 0; // Reset the total area of selected polygons
       state.selectedPolygons = []; // Clear the selection of polygons
@@ -175,7 +164,7 @@ const solutionsSlice = createSlice({
 
     performIntersect(state) {
       if (state.selectedPolygons.length < 2) {
-        console.error("Union operation requires at least two polygons.");
+        console.error("Intersect operation requires at least two polygons.");
         return;
       }
 
@@ -187,57 +176,69 @@ const solutionsSlice = createSlice({
       ) as Feature<Polygon>[];
 
       if (selectedPolygonFeatures.length < 2) {
-        console.error("Not enough polygons found for union operation.");
+        console.error("Not enough polygons found for intersect operation.");
         return;
       }
 
-      const { intersectResult, totalArea } =
-        performIntersectUsingFeatureCollection(selectedPolygonFeatures);
+      const { intersectResult } = performIntersectUsingFeatureCollection(
+        selectedPolygonFeatures
+      );
 
       if (!intersectResult) {
-        console.error("Union operation failed.");
-        // state.toastMessage = 'No intersection found between the selected polygons!';
+        state.toastMessage = 'Intersect operation is not possible for selected polygons.';
         return;
       }
 
-      // Create a new solution containing the union result
-      const intersectSolution: WritableDraft<FeatureCollection> = {
-        type: "FeatureCollection",
-        id: `union-${Date.now()}`, // Add a unique ID for the new solution
-        features: [
-          ...state.solutions.flatMap((solution) =>
-            solution.features.filter(
-              (feature) =>
-                !state.selectedPolygons.includes(feature.id as string)
-            )
-          ), // Include all non-selected features
-          intersectResult, // Add the union result
-        ],
-      };
+      // Create a new intersect feature and cast it to the correct type
+      const newIntersectFeature = {
+        ...intersectResult,
+        id: `intersect-${Date.now()}`, // Assign a unique ID
+        properties: {
+          ...intersectResult.properties,
+          generatedBy: "performIntersect", // Optional metadata
+        },
+      } as WritableDraft<Feature>;
 
-      // Update the state
+      // Replace the selected polygons in the solutions and update the selectedSolutions
+      let updatedSolution: WritableDraft<FeatureCollection> | null = null;
+
       state.solutions = state.solutions.map((solution) => {
-        if (
-          solution.features.some((feature) =>
-            state.selectedPolygons.includes(feature.id as string)
-          )
-        ) {
-          // Replace the solution that contains selected polygons with the union solution
-          return intersectSolution;
+        const containsSelectedPolygons = solution.features.some((feature) =>
+          state.selectedPolygons.includes(feature.id as string)
+        );
+
+        if (containsSelectedPolygons) {
+          // Remove selected polygons and add the intersect result
+          const updatedFeatures = solution.features.filter(
+            (feature) => !state.selectedPolygons.includes(feature.id as string)
+          );
+
+          updatedSolution = {
+            ...solution,
+            features: [...updatedFeatures, newIntersectFeature], // Add the new intersect result
+          } as WritableDraft<FeatureCollection>;
+
+          return updatedSolution; // Replace the original solution
         }
+
         return solution; // Keep other solutions unchanged
       });
 
-      state.intersectResult = intersectResult;
-      state.totalArea = totalArea;
+      if (updatedSolution) {
+        // Update selectedSolutions to focus on the modified solution
+        state.selectedSolutions = [updatedSolution];
+      }
 
-      // Clear the selection of polygons
-      state.selectedPolygons = [];
+      // console.log("state.solutions", state.solutions);
+
+      state.totalArea = 0; // Reset the total area of selected polygons
+      state.selectedPolygons = []; // Clear the selection of polygons
+      state.toastMessage = 'Intersect operation completed successfully!';
     },
+
   },
 });
 
 // Export actions and reducer
-// export const { setSolutions, updateSolutionState, toggleSolution, performUnion, performIntersect } = solutionsSlice.actions; 
 export const { setSolutions, updateSolutionState, toggleSolution, performIntersect, togglePolygonSelection, clearPolygonSelection, performUnion } = solutionsSlice.actions; 
 export default solutionsSlice.reducer; // The reducer
