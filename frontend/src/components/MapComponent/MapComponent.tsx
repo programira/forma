@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, useMap, FeatureGroup } from 'react-leaflet';
 // import { EditControl } from 'react-leaflet-draw';
 import { LatLngTuple } from 'leaflet';

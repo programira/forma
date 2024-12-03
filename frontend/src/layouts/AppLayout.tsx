@@ -52,10 +52,6 @@ const AppLayout: React.FC = () => {
     }
 
     dispatch(performUnion());
-    setSnackbar({
-      open: true,
-      message: 'Union operation completed successfully!',
-    });
   };
 
   const handleIntersect = () => {

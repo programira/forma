@@ -90,6 +90,7 @@ const solutionsSlice = createSlice({
       state.selectedPolygons = []; // Clear all selected polygons
     },
     performUnion(state) {
+      state.toastMessage = ''; // Clear any previous toast message
       if (state.selectedPolygons.length < 2) {
         console.error("Union operation requires at least two polygons.");
         return;
@@ -112,7 +113,14 @@ const solutionsSlice = createSlice({
       );
 
       if (!unionResult) {
-        console.error("Union operation failed.");
+        state.toastMessage = "Union operation failed.";
+        return;
+      }
+
+      // Check if the result is a MultiPolygon
+      if (unionResult.geometry.type === "MultiPolygon") {
+        state.toastMessage =
+          "Union resulted in a MultiPolygon, which is not supported!";
         return;
       }
 
@@ -160,9 +168,11 @@ const solutionsSlice = createSlice({
 
       state.totalArea = 0; // Reset the total area of selected polygons
       state.selectedPolygons = []; // Clear the selection of polygons
+      state.toastMessage = 'Union operation completed successfully!';
     },
 
     performIntersect(state) {
+      state.toastMessage = ''; // Clear any previous toast message
       if (state.selectedPolygons.length < 2) {
         console.error("Intersect operation requires at least two polygons.");
         return;
@@ -186,6 +196,13 @@ const solutionsSlice = createSlice({
 
       if (!intersectResult) {
         state.toastMessage = 'Intersect operation is not possible for selected polygons.';
+        return;
+      }
+
+      // Check if the result is a MultiPolygon
+      if (intersectResult.geometry.type === "MultiPolygon") {
+        state.toastMessage =
+          "Intersect resulted in a MultiPolygon, which is not supported!";
         return;
       }
 
