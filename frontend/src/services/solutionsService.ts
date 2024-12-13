@@ -1,18 +1,19 @@
 import { FeatureCollection } from '../types/geojson';
-import solution1 from './mockData/solution1.json';
-import solution2 from './mockData/solution2.json';
-
-// export const getSolutions = async (): Promise<FeatureCollection[]> => {
-//   // Simulate a network delay
-//   await new Promise((resolve) => setTimeout(resolve, 500));
-
-//   // Return mocked solutions
-//   return [solution1 as FeatureCollection, solution2 as FeatureCollection];
-// };
+// import solution1 from './mockData/solution1.json';
+// import solution2 from './mockData/solution2.json';
 
 export const getSolutions = async (): Promise<FeatureCollection[]> => {
-    const rawSolutions = [solution1, solution2]; // Mocked JSON data
+    // Simple way
+    // const rawSolutions = [solution1, solution2]; // Mocked JSON data
+
+    // Dinamic way to import every JSON file in the mockData folder
+    const modules = import.meta.glob('./mockData/*.json');
+    const rawSolutions = await Promise.all(
+      Object.entries(modules).map(async ([_, module]) => (await module()) as FeatureCollection)
+    );
+    
     const solutionsWithIds = rawSolutions.map((solution, index) => ({
+
       ...solution,
       id: `solution-${index+1}`, // Add a unique id
       features: solution.features.map((feature, featureIndex) => ({

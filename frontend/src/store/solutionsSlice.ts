@@ -47,6 +47,7 @@ const solutionsSlice = createSlice({
       if (isSelected) {
         // Deselect the solution
         state.selectedSolutions = [];
+        state.selectedPolygons = []; // Clear selected polygons
       } else {
         // Find the solution in the main solutions list
         const solution = state.solutions.find(
@@ -54,6 +55,7 @@ const solutionsSlice = createSlice({
         );
         if (solution) {
           state.selectedSolutions = [solution];
+          state.selectedPolygons = []; // Clear selected polygons
         }
       }
     },
@@ -121,7 +123,7 @@ const solutionsSlice = createSlice({
       if (unionResult.geometry.type === "MultiPolygon") {
         state.toastMessage =
           "Union resulted in a MultiPolygon, which is not supported!";
-        return;
+        // return;
       }
 
       // Create a new union feature and cast it to the correct type
@@ -203,7 +205,7 @@ const solutionsSlice = createSlice({
       if (intersectResult.geometry.type === "MultiPolygon") {
         state.toastMessage =
           "Intersect resulted in a MultiPolygon, which is not supported!";
-        return;
+        // return;
       }
 
       // Create a new intersect feature and cast it to the correct type

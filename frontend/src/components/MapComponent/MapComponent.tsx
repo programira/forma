@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, useMap, FeatureGroup } from 'react-leaflet';
 // import { EditControl } from 'react-leaflet-draw';
 import { LatLngTuple } from 'leaflet';
@@ -40,6 +40,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const selectedPolygons = useSelector((state: RootState) => state.solutions.selectedPolygons);
   const [selectedPolygonIds, setSelectedPolygonIds] = useState<string[]>([]); // Track selected polygons
 
+  // Need to clear the selected polygons so we don't have any leftovers on the map, like Tooltips of previous solution 
+  useEffect(() => {
+    if (selectedPolygons.length === 0) {
+      setSelectedPolygonIds([]);
+    }
+  }, [selectedPolygons]);
+
   const { polygons, initialCenter, polygonIds } = useMemo(() => {
     let polygons: LatLngTuple[][] = [];
     const polygonIds: string[] = [];
@@ -58,8 +65,23 @@ const MapComponent: React.FC<MapComponentProps> = ({
       // Convert all polygons to Leaflet-compatible LatLngTuple arrays and track IDs
       polygons = dataToRender.flatMap((solution) =>
         solution.features.map((feature) => {
+          console.log('feature', feature);
           polygonIds.push(feature.id as string); // Store the feature ID
-          return feature.geometry.coordinates[0].map(([lng, lat]) => [lat, lng] as LatLngTuple);
+          // The simple way if we dont support Multipolygons
+          // return feature.geometry.coordinates[0].map(([lng, lat]) => [lat, lng] as LatLngTuple);
+
+          // If we decide to support the Multipolygon type, then check the geometry type and itterate the polygons
+          // Ensure consistent handling of Polygon and MultiPolygon
+          const polygons = feature.geometry.type === 'Polygon'
+            ? [feature.geometry.coordinates] // Wrap single Polygon coordinates as an array
+            : feature.geometry.coordinates; // MultiPolygon coordinates are already arrays
+
+          return polygons.flatMap((polygon) =>
+            polygon.map((ring) =>
+              ring.map(([lng, lat]) => [lat, lng] as LatLngTuple)
+            )
+          );
+
         })
       );
     } else if (!Array.isArray(dataToRender) && dataToRender?.features?.length > 0) {
